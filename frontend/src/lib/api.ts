@@ -233,3 +233,81 @@ export const refundPayment = async (txnId: string): Promise<Transaction> => {
   );
   return data.data;
 };
+
+// ─── Shipment / Tracking ──────────────────────────────────────────────────────
+
+import { Shipment, ShipmentDetail, ShipmentEvent } from '../types';
+
+export const getShipment = async (id: string): Promise<ShipmentDetail> => {
+  const { data } = await api.get<{ success: boolean; data: ShipmentDetail }>(`/shipments/${id}`);
+  return data.data;
+};
+
+export const listBuyerShipments = async (buyerId: string): Promise<Shipment[]> => {
+  const { data } = await api.get<{ success: boolean; data: Shipment[] }>(
+    `/shipments/buyer/${buyerId}`,
+  );
+  return data.data;
+};
+
+export const listPoolShipments = async (poolId: string): Promise<Shipment[]> => {
+  const { data } = await api.get<{ success: boolean; data: Shipment[] }>(
+    `/shipments/pool/${poolId}`,
+  );
+  return data.data;
+};
+
+export const listSupplierShipments = async (supplierId: string): Promise<Shipment[]> => {
+  const { data } = await api.get<{ success: boolean; data: Shipment[] }>(
+    `/shipments/supplier/${supplierId}`,
+  );
+  return data.data;
+};
+
+export interface CreateShipmentPayload {
+  pool_id: string;
+  supplier_id: string;
+  courier: string;
+  tracking_number?: string;
+  origin_city: string;
+  destination_city: string;
+  pickup_address?: string;
+  notes?: string;
+  estimated_delivery?: string;
+}
+
+export const createShipment = async (payload: CreateShipmentPayload): Promise<Shipment> => {
+  const { data } = await api.post<{ success: boolean; data: Shipment }>('/shipments', payload);
+  return data.data;
+};
+
+export const addTrackingEvent = async (
+  shipmentId: string,
+  payload: { status: string; location?: string; description: string },
+): Promise<ShipmentEvent> => {
+  const { data } = await api.post<{ success: boolean; data: ShipmentEvent }>(
+    `/shipments/${shipmentId}/events`,
+    payload,
+  );
+  return data.data;
+};
+
+export const updateShipmentStatus = async (
+  shipmentId: string,
+  status: string,
+  tracking_number?: string,
+): Promise<Shipment> => {
+  const { data } = await api.patch<{ success: boolean; data: Shipment }>(
+    `/shipments/${shipmentId}/status`,
+    { status, tracking_number },
+  );
+  return data.data;
+};
+
+export const submitDeliveryProof = async (
+  shipmentId: string,
+  payload: { photo_url?: string; notes?: string; received_by?: string },
+) => {
+  const { data } = await api.post(`/shipments/${shipmentId}/proof`, payload);
+  return data.data;
+};

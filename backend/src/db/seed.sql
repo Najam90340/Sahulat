@@ -147,3 +147,49 @@ SELECT
 FROM pool_members pm
 WHERE pm.pool_id = 'd1000000-0000-0000-0000-000000000002'
 ON CONFLICT (pool_member_id) DO NOTHING;
+
+-- ── Sample Shipments (for confirmed Sugar pool d1000000-0000-0000-0000-000000000002) ──
+
+INSERT INTO shipments (id, pool_id, supplier_id, courier, tracking_number, status,
+                       origin_city, destination_city, pickup_address, notes,
+                       estimated_delivery, booked_at, picked_up_at)
+VALUES (
+  'g1000000-0000-0000-0000-000000000001',
+  'd1000000-0000-0000-0000-000000000002',
+  'a1000000-0000-0000-0000-000000000005',
+  'tcs',
+  'TCS-2024-001234',
+  'in_transit',
+  'Lahore',
+  'Karachi',
+  'Global Goods Warehouse, Gulberg III, Lahore',
+  'Handle with care. Consolidated shipment for pool buyers.',
+  NOW() + INTERVAL '3 days',
+  NOW() - INTERVAL '2 days',
+  NOW() - INTERVAL '1 day'
+) ON CONFLICT DO NOTHING;
+
+-- Tracking events for the above shipment
+INSERT INTO shipment_events (shipment_id, status, location, description, occurred_at)
+VALUES
+  ('g1000000-0000-0000-0000-000000000001', 'booked',    'Lahore',  'Shipment booked with TCS. Tracking: TCS-2024-001234', NOW() - INTERVAL '2 days'),
+  ('g1000000-0000-0000-0000-000000000001', 'picked_up', 'Lahore',  'Parcel picked up from supplier warehouse.',           NOW() - INTERVAL '1 day 18 hours'),
+  ('g1000000-0000-0000-0000-000000000001', 'in_transit', 'Lahore Hub', 'Arrived at Lahore sorting hub.',                 NOW() - INTERVAL '1 day 12 hours'),
+  ('g1000000-0000-0000-0000-000000000001', 'in_transit', 'Multan Hub', 'In transit via Multan hub.',                     NOW() - INTERVAL '1 day')
+ON CONFLICT DO NOTHING;
+
+-- Shipment members (linked to pool members of Sugar pool)
+INSERT INTO shipment_members (shipment_id, pool_member_id, buyer_id, quantity, delivery_address, sub_status)
+SELECT
+  'g1000000-0000-0000-0000-000000000001',
+  pm.id,
+  pm.buyer_id,
+  pm.quantity,
+  CASE pm.buyer_id
+    WHEN 'a1000000-0000-0000-0000-000000000002' THEN 'House 12, Block C, North Nazimabad, Karachi'
+    WHEN 'a1000000-0000-0000-0000-000000000004' THEN 'Shop 45, Liberty Market Area, Lahore'
+  END,
+  'in_transit'
+FROM pool_members pm
+WHERE pm.pool_id = 'd1000000-0000-0000-0000-000000000002'
+ON CONFLICT (shipment_id, pool_member_id) DO NOTHING;

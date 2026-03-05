@@ -136,3 +136,70 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_transactions_pool_id   ON transactions(pool_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_buyer_id  ON transactions(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_status    ON transactions(status);
+
+-- ── Logistics / Shipment Tracking ──────────────────────────────────────────
+
+-- Shipments: one consolidated shipment per confirmed pool (supplier → all buyers)
+CREATE TABLE IF NOT EXISTS shipments (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pool_id         UUID NOT NULL REFERENCES pools(id) ON DELETE CASCADE,
+  supplier_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  courier         VARCHAR(100) NOT NULL,   -- 'tcs' | 'leopards' | 'postex' | 'mp' | 'rider' | 'dhl' | 'other'
+  tracking_number VARCHAR(255),            -- courier-assigned tracking number
+  status          VARCHAR(30) NOT NULL DEFAULT 'pending',
+  -- 'pending' | 'booked' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'failed'
+  origin_city     VARCHAR(100) NOT NULL,
+  destination_city VARCHAR(100) NOT NULL,
+  pickup_address  TEXT,
+  notes           TEXT,
+  estimated_delivery TIMESTAMPTZ,
+  booked_at       TIMESTAMPTZ,
+  picked_up_at    TIMESTAMPTZ,
+  delivered_at    TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Shipment events: immutable tracking timeline (append-only)
+CREATE TABLE IF NOT EXISTS shipment_events (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_id  UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+  status       VARCHAR(30) NOT NULL,      -- same set as shipments.status
+  location     VARCHAR(255),              -- city / hub where event occurred
+  description  TEXT NOT NULL,
+  occurred_at  TIMESTAMPTZ DEFAULT NOW(),
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Delivery proofs: photo URL + notes per shipment, captured on final delivery
+CREATE TABLE IF NOT EXISTS delivery_proofs (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_id  UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+  photo_url    TEXT,                      -- URL to proof-of-delivery image
+  notes        TEXT,
+  received_by  VARCHAR(255),             -- name of person who accepted delivery
+  confirmed_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (shipment_id)
+);
+
+-- Shipment members: maps each pool member's individual delivery details
+-- Used for split / consolidated shipments where each buyer gets their share
+CREATE TABLE IF NOT EXISTS shipment_members (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_id    UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+  pool_member_id UUID NOT NULL REFERENCES pool_members(id) ON DELETE CASCADE,
+  buyer_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  quantity       INTEGER NOT NULL CHECK (quantity > 0),
+  delivery_address TEXT,
+  sub_status     VARCHAR(30) NOT NULL DEFAULT 'pending',
+  -- 'pending' | 'in_transit' | 'delivered' | 'failed'
+  delivered_at   TIMESTAMPTZ,
+  UNIQUE (shipment_id, pool_member_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shipments_pool_id      ON shipments(pool_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_supplier_id  ON shipments(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_status       ON shipments(status);
+CREATE INDEX IF NOT EXISTS idx_shipment_events_ship   ON shipment_events(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_members_ship  ON shipment_members(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_members_buyer ON shipment_members(buyer_id);

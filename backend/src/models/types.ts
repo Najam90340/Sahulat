@@ -182,3 +182,110 @@ export interface PaymentCallbackBody {
   amount?: number;
   metadata?: Record<string, unknown>;
 }
+
+// ── Logistics / Shipment Tracking ────────────────────────────────────────────
+
+export type ShipmentStatus =
+  | 'pending'
+  | 'booked'
+  | 'picked_up'
+  | 'in_transit'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'failed';
+
+export type CourierPartner =
+  | 'tcs'
+  | 'leopards'
+  | 'postex'
+  | 'mp'
+  | 'rider'
+  | 'dhl'
+  | 'other';
+
+export interface Shipment {
+  id: string;
+  pool_id: string;
+  supplier_id: string;
+  courier: CourierPartner;
+  tracking_number?: string;
+  status: ShipmentStatus;
+  origin_city: string;
+  destination_city: string;
+  pickup_address?: string;
+  notes?: string;
+  estimated_delivery?: string;
+  booked_at?: string;
+  picked_up_at?: string;
+  delivered_at?: string;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  product_name?: string;
+  supplier_name?: string;
+  member_count?: number;
+  event_count?: number;
+}
+
+export interface ShipmentEvent {
+  id: string;
+  shipment_id: string;
+  status: ShipmentStatus;
+  location?: string;
+  description: string;
+  occurred_at: string;
+  created_at: string;
+}
+
+export interface DeliveryProof {
+  id: string;
+  shipment_id: string;
+  photo_url?: string;
+  notes?: string;
+  received_by?: string;
+  confirmed_at: string;
+}
+
+export interface ShipmentMember {
+  id: string;
+  shipment_id: string;
+  pool_member_id: string;
+  buyer_id: string;
+  buyer_name?: string;
+  quantity: number;
+  delivery_address?: string;
+  sub_status: string;
+  delivered_at?: string;
+}
+
+export interface CreateShipmentBody {
+  pool_id: string;
+  supplier_id: string;
+  courier: CourierPartner;
+  tracking_number?: string;
+  origin_city: string;
+  destination_city: string;
+  pickup_address?: string;
+  notes?: string;
+  estimated_delivery?: string;
+  members?: { pool_member_id: string; buyer_id: string; quantity: number; delivery_address?: string }[];
+}
+
+export interface AddShipmentEventBody {
+  status: ShipmentStatus;
+  location?: string;
+  description: string;
+  occurred_at?: string;
+}
+
+export interface SubmitDeliveryProofBody {
+  photo_url?: string;
+  notes?: string;
+  received_by?: string;
+}
+
+export interface UpdateShipmentStatusBody {
+  status: ShipmentStatus;
+  tracking_number?: string;
+  notes?: string;
+}
