@@ -5,7 +5,7 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, Alert } from 'react-native';
 import { translations, Lang, TranslationKey } from '../i18n/translations';
 
 interface LanguageContextValue {
@@ -28,8 +28,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const toggle = useCallback(() => {
     setLang((prev) => {
       const next: Lang = prev === 'en' ? 'ur' : 'en';
-      // Enable RTL layout for Urdu; requires app restart on some RN versions
-      I18nManager.forceRTL(next === 'ur');
+      const needsRtlChange = (next === 'ur') !== I18nManager.isRTL;
+      if (needsRtlChange) {
+        I18nManager.forceRTL(next === 'ur');
+        // RTL layout direction requires an app restart on React Native
+        Alert.alert(
+          next === 'ur' ? 'زبان تبدیل کی گئی' : 'Language Changed',
+          next === 'ur'
+            ? 'اردو RTL لے آؤٹ کے لیے ایپ کو دوبارہ شروع کریں۔'
+            : 'Please restart the app to apply the LTR layout for English.',
+          [{ text: next === 'ur' ? 'ٹھیک ہے' : 'OK' }],
+        );
+      }
       return next;
     });
   }, []);

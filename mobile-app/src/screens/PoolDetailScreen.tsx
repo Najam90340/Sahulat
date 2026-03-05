@@ -107,7 +107,7 @@ export function PoolDetailScreen({ poolId, onBack, onCheckout }: Props) {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t('pool_progress')}</Text>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${progressPct}%` as unknown as number }]} />
+              <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
             </View>
             <View style={styles.progressLabels}>
               <Text style={styles.progressPct}>{Math.round(progressPct)}%</Text>

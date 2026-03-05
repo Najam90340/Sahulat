@@ -2,18 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const NAV_ITEMS = [
-  { href: '/',        icon: '🏠', labelKey: 'hero_post_rfq' as const,   label: 'Home'     },
-  { href: '/rfq',     icon: '📋', labelKey: 'nav_rfqs' as const,        label: 'RFQs'     },
-  { href: '/pools',   icon: '🤝', labelKey: 'nav_pools' as const,       label: 'Pools'    },
-  { href: '/chat',    icon: '💬', labelKey: 'nav_messages' as const,    label: 'Chat'     },
-  { href: '/rfq/new', icon: '➕', labelKey: 'nav_post_rfq' as const,    label: 'Post'     },
+  { href: '/',        icon: '🏠', label: 'Home'  },
+  { href: '/rfq',     icon: '📋', label: 'RFQs'  },
+  { href: '/pools',   icon: '🤝', label: 'Pools' },
+  { href: '/chat',    icon: '💬', label: 'Chat'  },
+  { href: '/rfq/new', icon: '➕', label: 'Post'  },
 ];
 
 export default function BottomNav() {
-  const { t } = useLanguage();
   const pathname = usePathname();
 
   return (
