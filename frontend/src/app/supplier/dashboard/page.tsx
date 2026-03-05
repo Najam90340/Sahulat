@@ -4,7 +4,7 @@ import { SupplierDashboard, SupplierWithStats } from '@/types';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Demo supplier ID – in a real app this comes from the auth session
-const DEMO_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
+const DEFAULT_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
 
 const VERIFICATION_BADGE: Record<string, { label: string; css: string; icon: string }> = {
   pending:  { label: 'Pending',  css: 'badge-pending',  icon: '⏳' },
@@ -14,7 +14,7 @@ const VERIFICATION_BADGE: Record<string, { label: string; css: string; icon: str
 
 async function getDashboard(): Promise<SupplierDashboard | null> {
   try {
-    const res = await fetch(`${BASE_URL}/suppliers/${DEMO_SUPPLIER_ID}/dashboard`, {
+    const res = await fetch(`${BASE_URL}/suppliers/${DEFAULT_SUPPLIER_ID}/dashboard`, {
       cache: 'no-store',
     });
     if (!res.ok) return null;

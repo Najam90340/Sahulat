@@ -4,7 +4,7 @@ import { SupplierOrder, Quote } from '@/types';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Demo supplier ID – in a real app this comes from the auth session
-const DEMO_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
+const DEFAULT_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
 
 const POOL_STATUS_BADGE: Record<string, string> = {
   open:      'badge-blue',
@@ -21,7 +21,7 @@ const QUOTE_STATUS_BADGE: Record<string, string> = {
 
 async function getOrders(): Promise<SupplierOrder[]> {
   try {
-    const res = await fetch(`${BASE_URL}/suppliers/${DEMO_SUPPLIER_ID}/orders`, {
+    const res = await fetch(`${BASE_URL}/suppliers/${DEFAULT_SUPPLIER_ID}/orders`, {
       cache: 'no-store',
     });
     if (!res.ok) return [];
@@ -34,7 +34,7 @@ async function getOrders(): Promise<SupplierOrder[]> {
 
 async function getQuotes(): Promise<Quote[]> {
   try {
-    const res = await fetch(`${BASE_URL}/suppliers/${DEMO_SUPPLIER_ID}/quotes`, {
+    const res = await fetch(`${BASE_URL}/suppliers/${DEFAULT_SUPPLIER_ID}/quotes`, {
       cache: 'no-store',
     });
     if (!res.ok) return [];
@@ -47,7 +47,7 @@ async function getQuotes(): Promise<Quote[]> {
 
 async function getAnalytics() {
   try {
-    const res = await fetch(`${BASE_URL}/suppliers/${DEMO_SUPPLIER_ID}/analytics`, {
+    const res = await fetch(`${BASE_URL}/suppliers/${DEFAULT_SUPPLIER_ID}/analytics`, {
       cache: 'no-store',
     });
     if (!res.ok) return null;

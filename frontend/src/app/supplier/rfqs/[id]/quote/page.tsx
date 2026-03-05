@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { submitQuote } from '@/lib/api';
 
 // Demo supplier ID – in a real app this comes from the auth session
-const DEMO_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
+const DEFAULT_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
 
 export default function QuoteFormPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function QuoteFormPage({ params }: { params: Promise<{ id: string
 
     try {
       await submitQuote(rfqId, {
-        supplier_id: DEMO_SUPPLIER_ID,
+        supplier_id: DEFAULT_SUPPLIER_ID,
         price_per_unit: parseFloat(pricePerUnit),
         lead_time_days: parseInt(leadTimeDays, 10),
         notes: notes.trim() || undefined,

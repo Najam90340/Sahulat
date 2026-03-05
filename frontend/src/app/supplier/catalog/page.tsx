@@ -6,7 +6,7 @@ import { listCatalogItems, createCatalogItem, updateCatalogItem, deleteCatalogIt
 import { CatalogItem } from '@/types';
 
 // Demo supplier ID – in a real app this comes from the auth session
-const DEMO_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
+const DEFAULT_SUPPLIER_ID = 'a1000000-0000-0000-0000-000000000005';
 
 const EMPTY_FORM = {
   product_name: '',
@@ -30,7 +30,7 @@ export default function CatalogPage() {
   const loadItems = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await listCatalogItems({ supplier_id: DEMO_SUPPLIER_ID });
+      const data = await listCatalogItems({ supplier_id: DEFAULT_SUPPLIER_ID });
       setItems(data);
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ export default function CatalogPage() {
     setSubmitting(true);
     try {
       const payload = {
-        supplier_id: DEMO_SUPPLIER_ID,
+        supplier_id: DEFAULT_SUPPLIER_ID,
         product_name: form.product_name,
         category: form.category || undefined,
         description: form.description || undefined,
