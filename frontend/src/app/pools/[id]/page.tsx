@@ -229,6 +229,36 @@ export default function PoolDetailPage({ params }: { params: Promise<{ id: strin
             {displayStatus === 'partial' && '⚠️ Partial fulfillment — not all orders could be confirmed.'}
           </div>
         )}
+
+        {/* Pay Now button for confirmed pools where buyer is a member */}
+        {displayStatus === 'confirmed' && alreadyMember && (
+          <div
+            style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: 'var(--radius)',
+              padding: '1.25rem',
+            }}
+          >
+            <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+              💳 Secure Your Order
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+              This pool has been confirmed. Pay now to secure your allocation. Your payment will be
+              held in escrow and released to the supplier only after you confirm delivery.
+            </p>
+            <Link href={`/payment/${pool.id}`} className="btn-primary">
+              Pay Now →
+            </Link>
+            <Link
+              href="/payment/history"
+              className="btn-secondary"
+              style={{ marginLeft: '0.75rem' }}
+            >
+              View My Payments
+            </Link>
+          </div>
+        )}
       </div>
     </main>
   );

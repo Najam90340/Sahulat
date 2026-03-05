@@ -21,6 +21,7 @@ export default function RootLayout({
             <nav className="admin-nav">
               <Link href="/">Overview</Link>
               <Link href="/suppliers">Suppliers</Link>
+              <Link href="/payments">Payments</Link>
               <Link href="/analytics">Analytics</Link>
             </nav>
           </aside>

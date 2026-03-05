@@ -5,6 +5,7 @@ import suppliersRouter from './suppliers';
 import catalogRouter from './catalog';
 import quotesRouter from './quotes';
 import adminRouter from './admin';
+import paymentsRouter from './payments';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/suppliers', suppliersRouter);
 router.use('/catalog', catalogRouter);
 router.use('/quotes', quotesRouter);
 router.use('/admin', adminRouter);
+router.use('/payments', paymentsRouter);
 
 export default router;

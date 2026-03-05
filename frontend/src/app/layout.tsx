@@ -24,6 +24,7 @@ export default function RootLayout({
               <Link href="/rfq">RFQs</Link>
               <Link href="/pools">Pools</Link>
               <Link href="/supplier/dashboard">Supplier</Link>
+              <Link href="/payment/history">My Payments</Link>
               <Link href="/rfq/new" className="btn-primary">
                 + Post RFQ
               </Link>

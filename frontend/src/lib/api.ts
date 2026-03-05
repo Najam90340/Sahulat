@@ -177,3 +177,59 @@ export const updateSupplierVerification = async (
   );
   return data.data;
 };
+
+// ─── Payments / Escrow ────────────────────────────────────────────────────────
+
+import { Transaction, InitiatePaymentResult, PaymentMethod } from '../types';
+
+export interface InitiatePaymentPayload {
+  buyer_id: string;
+  pool_id: string;
+  payment_method: PaymentMethod;
+  amount: number;
+  phone?: string;
+  card_token?: string;
+}
+
+export const initiatePayment = async (
+  payload: InitiatePaymentPayload,
+): Promise<InitiatePaymentResult> => {
+  const { data } = await api.post<{ success: boolean; data: InitiatePaymentResult }>(
+    '/payments/initiate',
+    payload,
+  );
+  return data.data;
+};
+
+export const getTransaction = async (id: string): Promise<Transaction> => {
+  const { data } = await api.get<{ success: boolean; data: Transaction }>(`/payments/${id}`);
+  return data.data;
+};
+
+export const listBuyerTransactions = async (buyerId: string): Promise<Transaction[]> => {
+  const { data } = await api.get<{ success: boolean; data: Transaction[] }>(
+    `/payments/buyer/${buyerId}`,
+  );
+  return data.data;
+};
+
+export const listPoolTransactions = async (poolId: string): Promise<Transaction[]> => {
+  const { data } = await api.get<{ success: boolean; data: Transaction[] }>(
+    `/payments/pool/${poolId}`,
+  );
+  return data.data;
+};
+
+export const releasePayment = async (txnId: string): Promise<Transaction> => {
+  const { data } = await api.post<{ success: boolean; data: Transaction }>(
+    `/payments/${txnId}/release`,
+  );
+  return data.data;
+};
+
+export const refundPayment = async (txnId: string): Promise<Transaction> => {
+  const { data } = await api.post<{ success: boolean; data: Transaction }>(
+    `/payments/${txnId}/refund`,
+  );
+  return data.data;
+};

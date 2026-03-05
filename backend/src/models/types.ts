@@ -4,6 +4,184 @@ export type PoolStatus = 'open' | 'confirmed' | 'refunded' | 'partial';
 export type MemberStatus = 'pending' | 'confirmed' | 'refunded';
 export type QuoteStatus = 'pending' | 'accepted' | 'rejected';
 export type VerificationStatus = 'pending' | 'verified' | 'premium';
+export type PaymentMethod = 'easypaisa' | 'jazzcash' | 'bank_transfer' | 'card';
+export type TransactionStatus = 'initiated' | 'held' | 'released' | 'refunded' | 'failed';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  city?: string;
+  verification_status: VerificationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category?: string;
+  description?: string;
+  unit: string;
+  moq: number;
+  created_at: string;
+}
+
+export interface Rfq {
+  id: string;
+  buyer_id: string;
+  product_id?: string;
+  product_name: string;
+  quantity: number;
+  city: string;
+  description?: string;
+  status: RfqStatus;
+  images: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Pool {
+  id: string;
+  rfq_id: string;
+  creator_id: string;
+  product_name: string;
+  city: string;
+  moq: number;
+  current_quantity: number;
+  status: PoolStatus;
+  deadline?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PoolMember {
+  id: string;
+  pool_id: string;
+  buyer_id: string;
+  quantity: number;
+  amount_paid: number;
+  status: MemberStatus;
+  joined_at: string;
+}
+
+export interface PoolWithProgress extends Pool {
+  progress_pct: number;
+  member_count: number;
+  members?: PoolMember[];
+}
+
+export interface Quote {
+  id: string;
+  rfq_id: string;
+  supplier_id: string;
+  supplier_name?: string;
+  price_per_unit: number;
+  lead_time_days: number;
+  notes?: string;
+  status: QuoteStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogItem {
+  id: string;
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  description?: string;
+  unit: string;
+  moq: number;
+  price?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  pool_id: string;
+  pool_member_id: string;
+  buyer_id: string;
+  amount: number;
+  currency: string;
+  payment_method: PaymentMethod;
+  gateway_ref?: string;
+  status: TransactionStatus;
+  phone?: string;
+  initiated_at: string;
+  held_at?: string;
+  released_at?: string;
+  refunded_at?: string;
+  metadata?: Record<string, unknown>;
+  // Joined fields
+  product_name?: string;
+  buyer_name?: string;
+  pool_product_name?: string;
+}
+
+export interface CreateRfqBody {
+  buyer_id: string;
+  product_id?: string;
+  product_name: string;
+  quantity: number;
+  city: string;
+  description?: string;
+  images?: string[];
+}
+
+export interface CreatePoolBody {
+  rfq_id: string;
+  creator_id: string;
+  moq: number;
+  deadline?: string;
+}
+
+export interface JoinPoolBody {
+  buyer_id: string;
+  quantity: number;
+  amount_paid?: number;
+}
+
+export interface SubmitQuoteBody {
+  supplier_id: string;
+  price_per_unit: number;
+  lead_time_days: number;
+  notes?: string;
+}
+
+export interface CreateCatalogItemBody {
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  description?: string;
+  unit?: string;
+  moq: number;
+  price?: number;
+}
+
+export interface UpdateVerificationBody {
+  verification_status: VerificationStatus;
+}
+
+export interface InitiatePaymentBody {
+  buyer_id: string;
+  pool_id: string;
+  payment_method: PaymentMethod;
+  amount: number;
+  phone?: string;    // required for Easypaisa / JazzCash
+  card_token?: string; // opaque token from PCI-compliant gateway SDK (never raw card data)
+}
+
+export interface PaymentCallbackBody {
+  gateway_ref: string;
+  transaction_id: string; // our internal transaction id
+  status: 'success' | 'failure';
+  amount?: number;
+  metadata?: Record<string, unknown>;
+}
 
 export interface User {
   id: string;

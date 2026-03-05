@@ -109,3 +109,30 @@ CREATE INDEX IF NOT EXISTS idx_pool_members_buyer     ON pool_members(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_rfq_id          ON quotes(rfq_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_supplier_id     ON quotes(supplier_id);
 CREATE INDEX IF NOT EXISTS idx_catalog_supplier_id    ON catalog_items(supplier_id);
+
+-- ── Escrow / Payments ───────────────────────────────────────────────────────
+
+-- Transactions: one record per buyer per pool payment
+CREATE TABLE IF NOT EXISTS transactions (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pool_id         UUID NOT NULL REFERENCES pools(id) ON DELETE CASCADE,
+  pool_member_id  UUID NOT NULL REFERENCES pool_members(id) ON DELETE CASCADE,
+  buyer_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount          NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+  currency        VARCHAR(10) NOT NULL DEFAULT 'PKR',
+  payment_method  VARCHAR(30) NOT NULL,   -- 'easypaisa' | 'jazzcash' | 'bank_transfer' | 'card'
+  gateway_ref     VARCHAR(255),           -- external transaction ID returned by the payment gateway
+  status          VARCHAR(20) NOT NULL DEFAULT 'initiated',
+  -- 'initiated' | 'held' | 'released' | 'refunded' | 'failed'
+  phone           VARCHAR(30),            -- for Easypaisa / JazzCash mobile wallet
+  initiated_at    TIMESTAMPTZ DEFAULT NOW(),
+  held_at         TIMESTAMPTZ,
+  released_at     TIMESTAMPTZ,
+  refunded_at     TIMESTAMPTZ,
+  metadata        JSONB DEFAULT '{}',     -- gateway-specific payload (never store raw card data)
+  UNIQUE (pool_member_id)                 -- one transaction per pool_member slot
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_pool_id   ON transactions(pool_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_buyer_id  ON transactions(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_status    ON transactions(status);

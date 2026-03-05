@@ -121,3 +121,29 @@ INSERT INTO quotes (id, rfq_id, supplier_id, price_per_unit, lead_time_days, not
     'accepted'
   )
 ON CONFLICT DO NOTHING;
+
+-- Sample Transactions (escrow payments for confirmed Sugar pool)
+-- Pool member IDs are auto-generated so we need to look them up via subquery
+INSERT INTO transactions (pool_id, pool_member_id, buyer_id, amount, currency, payment_method, gateway_ref, status, held_at)
+SELECT
+  'd1000000-0000-0000-0000-000000000002',
+  pm.id,
+  pm.buyer_id,
+  CASE pm.buyer_id
+    WHEN 'a1000000-0000-0000-0000-000000000002' THEN 3400.00   -- 80kg × PKR 42.50
+    WHEN 'a1000000-0000-0000-0000-000000000004' THEN 9350.00   -- 220kg × PKR 42.50
+  END,
+  'PKR',
+  CASE pm.buyer_id
+    WHEN 'a1000000-0000-0000-0000-000000000002' THEN 'jazzcash'
+    WHEN 'a1000000-0000-0000-0000-000000000004' THEN 'easypaisa'
+  END,
+  CASE pm.buyer_id
+    WHEN 'a1000000-0000-0000-0000-000000000002' THEN 'JC-SEED-001'
+    WHEN 'a1000000-0000-0000-0000-000000000004' THEN 'EP-SEED-001'
+  END,
+  'held',
+  NOW() - INTERVAL '1 day'
+FROM pool_members pm
+WHERE pm.pool_id = 'd1000000-0000-0000-0000-000000000002'
+ON CONFLICT (pool_member_id) DO NOTHING;
