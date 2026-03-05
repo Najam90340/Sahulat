@@ -7,6 +7,7 @@ import quotesRouter from './quotes';
 import adminRouter from './admin';
 import paymentsRouter from './payments';
 import shipmentsRouter from './shipments';
+import chatRouter from './chat';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/quotes', quotesRouter);
 router.use('/admin', adminRouter);
 router.use('/payments', paymentsRouter);
 router.use('/shipments', shipmentsRouter);
+router.use('/chat', chatRouter);
 
 export default router;

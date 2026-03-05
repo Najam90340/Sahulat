@@ -5,22 +5,33 @@ import { TransactionStatusScreen } from './src/screens/TransactionStatusScreen';
 import { PaymentHistoryScreen } from './src/screens/PaymentHistoryScreen';
 import { ShipmentTrackingScreen } from './src/screens/ShipmentTrackingScreen';
 import { ShipmentListScreen } from './src/screens/ShipmentListScreen';
-import { Transaction, InitiatePaymentResult } from './src/types';
+import { ChatListScreen } from './src/screens/ChatListScreen';
+import { ChatScreen } from './src/screens/ChatScreen';
+import { Transaction, InitiatePaymentResult, Conversation } from './src/types';
 import { Shipment } from './src/types/shipments';
 
 // Demo data – in production these come from navigation params / auth context
-const DEMO_BUYER_ID = 'a1000000-0000-0000-0000-000000000002'; // Sara Khan (has shipment)
+const DEMO_BUYER_ID = 'a1000000-0000-0000-0000-000000000002'; // Sara Khan
 const DEMO_POOL_ID  = 'd1000000-0000-0000-0000-000000000002'; // confirmed Sugar pool
 const DEMO_PRODUCT  = 'Sugar (Confirmed Pool)';
 const DEMO_SHIPMENT_ID = 'g1000000-0000-0000-0000-000000000001'; // seed shipment
 
-type Screen = 'home' | 'payment' | 'txn_status' | 'payment_history' | 'tracking' | 'shipment_list';
+type Screen =
+  | 'home'
+  | 'payment'
+  | 'txn_status'
+  | 'payment_history'
+  | 'tracking'
+  | 'shipment_list'
+  | 'chat_list'
+  | 'chat';
 
 const App = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [txnResult, setTxnResult] = useState<InitiatePaymentResult | null>(null);
   const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
   const handlePaymentSuccess = (result: InitiatePaymentResult) => {
     setTxnResult(result);
@@ -36,6 +47,11 @@ const App = () => {
   const handleSelectShipment = (shipment: Shipment) => {
     setSelectedShipment(shipment);
     setScreen('tracking');
+  };
+
+  const handleSelectConversation = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    setScreen('chat');
   };
 
   if (screen === 'payment') {
@@ -101,6 +117,32 @@ const App = () => {
     );
   }
 
+  if (screen === 'chat_list') {
+    return (
+      <View style={styles.screenContainer}>
+        <ChatListScreen
+          userId={DEMO_BUYER_ID}
+          role="buyer"
+          onSelectConversation={handleSelectConversation}
+        />
+        <TouchableOpacity style={[styles.backBtn, { padding: 16 }]} onPress={() => setScreen('home')}>
+          <Text style={styles.backBtnText}>← Home</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (screen === 'chat' && selectedConversation) {
+    return (
+      <ChatScreen
+        conversation={selectedConversation}
+        userId={DEMO_BUYER_ID}
+        userRole="buyer"
+        onBack={() => setScreen('chat_list')}
+      />
+    );
+  }
+
   // Home screen
   return (
     <View style={styles.container}>
@@ -117,6 +159,14 @@ const App = () => {
         >
           <Text style={styles.primaryBtnText}>💳 Make a Payment</Text>
           <Text style={styles.primaryBtnSub}>Pay for confirmed pool order (escrow-protected)</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => setScreen('chat_list')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.secondaryBtnText}>💬 Messages</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -145,10 +195,10 @@ const App = () => {
       </View>
 
       <View style={styles.infoBox}>
-        <Text style={styles.infoTitle}>🔒 Escrow + Tracked Delivery</Text>
+        <Text style={styles.infoTitle}>🔒 Secure Messaging + Escrow</Text>
         <Text style={styles.infoText}>
-          Payments held in escrow until you confirm delivery. Real-time tracking via
-          TCS, Leopards, PostEx, M&P, Rider &amp; DHL.
+          Chat with suppliers in English or اردو. Contact info is auto-masked.
+          Payments held in escrow until delivery confirmed.
         </Text>
       </View>
     </View>

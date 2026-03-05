@@ -289,3 +289,66 @@ export interface UpdateShipmentStatusBody {
   tracking_number?: string;
   notes?: string;
 }
+
+// ── In-App Messaging ──────────────────────────────────────────────────────────
+
+export type MessageType = 'text' | 'image' | 'voice' | 'system';
+
+export interface Conversation {
+  id: string;
+  buyer_id: string;
+  supplier_id: string;
+  rfq_id?: string;
+  pool_id?: string;
+  subject?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  buyer_name?: string;
+  supplier_name?: string;
+  rfq_product?: string;
+  unread_count?: number;
+  last_message?: string;
+  last_message_at?: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_role: string;
+  type: MessageType;
+  body?: string;
+  body_ur?: string;
+  attachment_url?: string;
+  attachment_type?: string;
+  is_read: boolean;
+  is_masked: boolean;
+  sent_at: string;
+  created_at: string;
+  // Joined
+  sender_name?: string;
+}
+
+export interface CreateConversationBody {
+  buyer_id: string;
+  supplier_id: string;
+  rfq_id?: string;
+  pool_id?: string;
+  subject?: string;
+}
+
+export interface SendMessageBody {
+  sender_id: string;
+  sender_role: 'buyer' | 'supplier' | 'admin';
+  type?: MessageType;
+  body?: string;
+  attachment_url?: string;
+  attachment_type?: string;
+}
+
+export interface TranslateBody {
+  message_id: string;
+  target_lang: 'ur' | 'en';
+}

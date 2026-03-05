@@ -203,3 +203,44 @@ CREATE INDEX IF NOT EXISTS idx_shipments_status       ON shipments(status);
 CREATE INDEX IF NOT EXISTS idx_shipment_events_ship   ON shipment_events(shipment_id);
 CREATE INDEX IF NOT EXISTS idx_shipment_members_ship  ON shipment_members(shipment_id);
 CREATE INDEX IF NOT EXISTS idx_shipment_members_buyer ON shipment_members(buyer_id);
+
+-- ── In-App Messaging ──────────────────────────────────────────────────────────
+
+-- Conversations: one thread per (buyer, supplier, rfq) tuple
+CREATE TABLE IF NOT EXISTS conversations (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  buyer_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  supplier_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rfq_id       UUID REFERENCES rfqs(id) ON DELETE SET NULL,
+  pool_id      UUID REFERENCES pools(id) ON DELETE SET NULL,
+  subject      VARCHAR(255),           -- short label shown in inbox
+  is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (buyer_id, supplier_id, rfq_id)  -- one thread per context
+);
+
+-- Messages within a conversation
+CREATE TABLE IF NOT EXISTS messages (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id  UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  sender_role      VARCHAR(20) NOT NULL,  -- 'buyer' | 'supplier' | 'admin'
+  type             VARCHAR(20) NOT NULL DEFAULT 'text',
+  -- 'text' | 'image' | 'voice' | 'system'
+  body             TEXT,                  -- text content (contact-masked before storage)
+  body_ur          TEXT,                  -- Urdu translation (optional, populated on request)
+  attachment_url   TEXT,                  -- URL for image / voice attachment
+  attachment_type  VARCHAR(30),           -- 'image/jpeg' | 'image/png' | 'audio/ogg' | etc.
+  is_read          BOOLEAN NOT NULL DEFAULT FALSE,
+  is_masked        BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE if contact info was stripped
+  sent_at          TIMESTAMPTZ DEFAULT NOW(),
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversations_buyer    ON conversations(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_supplier ON conversations(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_rfq      ON conversations(rfq_id);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation  ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender        ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sent_at       ON messages(sent_at);

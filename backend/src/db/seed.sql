@@ -193,3 +193,40 @@ SELECT
 FROM pool_members pm
 WHERE pm.pool_id = 'd1000000-0000-0000-0000-000000000002'
 ON CONFLICT (shipment_id, pool_member_id) DO NOTHING;
+
+-- ── Sample Conversations & Messages ────────────────────────────────────────
+-- Conversation: Sara Khan (buyer) ↔ Global Goods (supplier) about Sugar RFQ
+
+INSERT INTO conversations (id, buyer_id, supplier_id, rfq_id, pool_id, subject)
+VALUES (
+  'h1000000-0000-0000-0000-000000000001',
+  'a1000000-0000-0000-0000-000000000002',   -- Sara Khan
+  'a1000000-0000-0000-0000-000000000005',   -- Global Goods Pvt Ltd
+  'b1000000-0000-0000-0000-000000000001',   -- Sugar RFQ
+  'd1000000-0000-0000-0000-000000000002',   -- Sugar Pool
+  'Sugar Order — Pool Inquiry'
+) ON CONFLICT (buyer_id, supplier_id, rfq_id) DO NOTHING;
+
+INSERT INTO messages (conversation_id, sender_id, sender_role, type, body, is_read)
+VALUES
+  ('h1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000002', 'buyer', 'text',
+   'السلام علیکم! میں نے آپ کا Sugar کا quote دیکھا۔ کیا آپ 500 units کے لیے پہلے سے order کر سکتے ہیں؟',
+   TRUE),
+  ('h1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000005', 'supplier', 'text',
+   'وعلیکم السلام! جی ہاں، ہم pool کے ذریعے بڑے orders کے لیے تیار ہیں۔ MOQ 1000 units ہے لیکن آپ pool میں شامل ہو سکتے ہیں۔',
+   TRUE),
+  ('h1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000002', 'buyer', 'text',
+   'What is the price per unit for Sugar?',
+   TRUE),
+  ('h1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000005', 'supplier', 'text',
+   'Price is PKR 185 per kg with 3 days lead time. We offer consolidated delivery to Karachi, Lahore, and Islamabad.',
+   FALSE),
+  ('h1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000002', 'buyer', 'text',
+   'Please send me more details about the delivery schedule.',
+   FALSE)
+ON CONFLICT DO NOTHING;

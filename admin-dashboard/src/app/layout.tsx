@@ -23,6 +23,7 @@ export default function RootLayout({
               <Link href="/suppliers">Suppliers</Link>
               <Link href="/payments">Payments</Link>
               <Link href="/shipments">Shipments</Link>
+              <Link href="/messages">Messages</Link>
               <Link href="/analytics">Analytics</Link>
             </nav>
           </aside>

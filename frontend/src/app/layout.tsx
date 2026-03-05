@@ -23,6 +23,7 @@ export default function RootLayout({
             <div className="nav-links">
               <Link href="/rfq">RFQs</Link>
               <Link href="/pools">Pools</Link>
+              <Link href="/chat">💬 Messages</Link>
               <Link href="/tracking">My Shipments</Link>
               <Link href="/supplier/dashboard">Supplier</Link>
               <Link href="/payment/history">My Payments</Link>
