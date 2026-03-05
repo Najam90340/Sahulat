@@ -8,6 +8,7 @@ import adminRouter from './admin';
 import paymentsRouter from './payments';
 import shipmentsRouter from './shipments';
 import chatRouter from './chat';
+import aiRouter from './ai';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/admin', adminRouter);
 router.use('/payments', paymentsRouter);
 router.use('/shipments', shipmentsRouter);
 router.use('/chat', chatRouter);
+router.use('/ai', aiRouter);
 
 export default router;

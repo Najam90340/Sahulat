@@ -480,3 +480,98 @@ export interface UpdatePromotionBody {
   valid_to?: string;
   is_active?: boolean;
 }
+
+// ── AI Services ───────────────────────────────────────────────────────────────
+
+export type CreditGrade         = 'A' | 'B' | 'C' | 'D' | 'F';
+export type Creditworthiness    = 'excellent' | 'good' | 'fair' | 'poor';
+
+export interface SupplierMatchReasoning {
+  location: string;
+  performance: string;
+  catalog: string;
+  price: string;
+}
+
+export interface AiSupplierMatch {
+  id: string;
+  rfq_id: string;
+  supplier_id: string;
+  score: number;
+  location_score: number;
+  performance_score: number;
+  catalog_score: number;
+  price_score: number;
+  rank: number;
+  reasoning: SupplierMatchReasoning;
+  model_version: string;
+  created_at: string;
+  // Joined
+  supplier_name?: string;
+  supplier_city?: string;
+  verification_status?: string;
+  total_quotes?: number;
+}
+
+export interface AiCreditFactor {
+  label: string;
+  impact: 'positive' | 'negative' | 'neutral';
+  detail: string;
+}
+
+export interface AiCreditScore {
+  id: string;
+  buyer_id: string;
+  score: number;
+  grade: CreditGrade;
+  creditworthiness: Creditworthiness;
+  suggested_limit: number;
+  factors: AiCreditFactor[];
+  transaction_count: number;
+  total_paid: number;
+  avg_pool_size: number;
+  on_time_rate: number;
+  model_version: string;
+  computed_at: string;
+  // Joined
+  buyer_name?: string;
+  buyer_email?: string;
+}
+
+export interface AiPricingReasoning {
+  basis: string;
+  market_note: string;
+  recommendation: string;
+}
+
+export interface AiPricingInsight {
+  id: string;
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  suggested_min: number;
+  suggested_max: number;
+  suggested_optimal: number;
+  market_median?: number;
+  competitor_count: number;
+  confidence: number;
+  reasoning: AiPricingReasoning;
+  model_version: string;
+  computed_at: string;
+  // Joined
+  supplier_name?: string;
+}
+
+export interface SupplierMatchRequest {
+  rfq_id: string;
+}
+
+export interface CreditScoreRequest {
+  buyer_id: string;
+}
+
+export interface PricingInsightRequest {
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+}

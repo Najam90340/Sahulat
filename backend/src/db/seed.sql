@@ -350,3 +350,107 @@ VALUES
     FALSE
   )
 ON CONFLICT DO NOTHING;
+
+-- ── AI Services: Pre-computed Supplier Match (for demo RFQ) ──────────────────
+-- Match results for c1000000... (Basmati Rice RFQ from Ali Raza in Lahore)
+
+INSERT INTO ai_supplier_matches
+  (id, rfq_id, supplier_id, score, location_score, performance_score,
+   catalog_score, price_score, rank, reasoning, model_version)
+VALUES
+  (
+    'n1000000-0000-0000-0000-000000000001',
+    'c1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000007',  -- Elite Traders (Islamabad, premium)
+    78.25, 20, 91.25, 60, 50,
+    1,
+    '{"location":"Supplier in Islamabad – city different region (score 20)","performance":"5/6 quotes accepted, +15 verification bonus (score 91.25)","catalog":"1 catalog item(s) match the RFQ product (score 60)","price":"No catalog price data available (score neutral)"}',
+    'heuristic-v1'
+  ),
+  (
+    'n1000000-0000-0000-0000-000000000002',
+    'c1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000005',  -- Global Goods (Lahore, verified)
+    74.50, 100, 53.0, 10, 50,
+    2,
+    '{"location":"Supplier in Lahore – city matches (score 100)","performance":"2/4 quotes accepted, +8 verification bonus (score 53)","catalog":"0 catalog item(s) match the RFQ product (score 10)","price":"No catalog price data available (score neutral)"}',
+    'heuristic-v1'
+  ),
+  (
+    'n1000000-0000-0000-0000-000000000003',
+    'c1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies (Karachi, pending)
+    30.50, 20, 30.0, 10, 50,
+    3,
+    '{"location":"Supplier in Karachi – city different region (score 20)","performance":"No quote history, using prior 30 (score 30)","catalog":"0 catalog item(s) match the RFQ product (score 10)","price":"No catalog price data available (score neutral)"}',
+    'heuristic-v1'
+  )
+ON CONFLICT (rfq_id, supplier_id) DO NOTHING;
+
+-- ── AI Services: Pre-computed Credit Scores ───────────────────────────────────
+
+INSERT INTO ai_credit_scores
+  (id, buyer_id, score, grade, creditworthiness, suggested_limit, factors,
+   transaction_count, total_paid, avg_pool_size, on_time_rate, model_version)
+VALUES
+  (
+    'o1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000001',  -- Ali Raza
+    720, 'B', 'good', 200000,
+    '[{"label":"Good payment history","impact":"positive","detail":"3/4 transactions released"},{"label":"Transaction volume","impact":"neutral","detail":"Total spend PKR 28500 across 4 transactions"},{"label":"Pool participation","impact":"neutral","detail":"Joined 2 buying pools, avg quantity 95 units"},{"label":"Account age","impact":"positive","detail":"Account active for 180 days"}]',
+    4, 28500, 95, 75, 'heuristic-v1'
+  ),
+  (
+    'o1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000002',  -- Sara Khan
+    610, 'C', 'fair', 75000,
+    '[{"label":"Good payment history","impact":"positive","detail":"2/2 transactions released"},{"label":"Transaction volume","impact":"negative","detail":"Total spend PKR 8000 across 2 transactions"},{"label":"Pool participation","impact":"neutral","detail":"Joined 1 buying pool, avg quantity 80 units"},{"label":"Account age","impact":"neutral","detail":"Account active for 60 days"}]',
+    2, 8000, 80, 100, 'heuristic-v1'
+  ),
+  (
+    'o1000000-0000-0000-0000-000000000003',
+    'a1000000-0000-0000-0000-000000000003',  -- Usman Malik
+    540, 'D', 'poor', 25000,
+    '[{"label":"Excellent payment history","impact":"positive","detail":"1/1 transactions released"},{"label":"Transaction volume","impact":"negative","detail":"Total spend PKR 1500 across 1 transaction"},{"label":"Pool participation","impact":"negative","detail":"Joined 0 buying pools, avg quantity 0 units"},{"label":"Account age","impact":"neutral","detail":"Account active for 45 days"}]',
+    1, 1500, 0, 100, 'heuristic-v1'
+  ),
+  (
+    'o1000000-0000-0000-0000-000000000004',
+    'a1000000-0000-0000-0000-000000000004',  -- Zara Ahmed
+    780, 'A', 'excellent', 500000,
+    '[{"label":"Excellent payment history","impact":"positive","detail":"8/8 transactions released"},{"label":"Transaction volume","impact":"positive","detail":"Total spend PKR 215000 across 8 transactions"},{"label":"Pool participation","impact":"positive","detail":"Joined 7 buying pools, avg quantity 120 units"},{"label":"Account age","impact":"positive","detail":"Account active for 400 days"}]',
+    8, 215000, 120, 100, 'heuristic-v1'
+  )
+ON CONFLICT (buyer_id) DO NOTHING;
+
+-- ── AI Services: Pre-computed Pricing Insights ────────────────────────────────
+
+INSERT INTO ai_pricing_insights
+  (id, supplier_id, product_name, category, suggested_min, suggested_max,
+   suggested_optimal, market_median, competitor_count, confidence, reasoning, model_version)
+VALUES
+  (
+    'p1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000005',  -- Global Goods
+    'Basmati Rice', 'Grains',
+    85.00, 145.00, 112.32, 108.00, 2, 72,
+    '{"basis":"Analysis of 8 data points from 5 accepted quotes and 3 catalog listings.","market_note":"Market prices range from PKR 85 (p10) to PKR 145 (p90), with a median of PKR 108.","recommendation":"As a verified supplier you can command a 4% trust premium. Recommended optimal: PKR 112."}',
+    'heuristic-v1'
+  ),
+  (
+    'p1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000007',  -- Elite Traders
+    'Mobile Charger', 'Electronics',
+    320.00, 680.00, 520.80, 501.00, 3, 68,
+    '{"basis":"Analysis of 6 data points from 4 accepted quotes and 2 catalog listings.","market_note":"Market prices range from PKR 320 (p10) to PKR 680 (p90), with a median of PKR 501.","recommendation":"As a premium supplier you can command an 8% trust premium. Recommended optimal: PKR 541."}',
+    'heuristic-v1'
+  ),
+  (
+    'p1000000-0000-0000-0000-000000000003',
+    'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies
+    'Sugar', 'Groceries',
+    100.00, 1000.00, 500.00, NULL, 0, 15,
+    '{"basis":"Insufficient market data (0 data points) for Sugar.","market_note":"Placeholder ranges provided. Accuracy will improve as more quotes and catalog data accumulate.","recommendation":"Start near the suggested optimal and adjust based on buyer response."}',
+    'heuristic-v1'
+  )
+ON CONFLICT DO NOTHING;

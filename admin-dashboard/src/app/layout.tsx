@@ -29,6 +29,7 @@ export default function RootLayout({
               <Link href="/subscriptions">Subscriptions</Link>
               <Link href="/promotions">Promotions</Link>
               <Link href="/messages">Messages</Link>
+              <Link href="/ai">🤖 AI Services</Link>
             </nav>
           </aside>
           <main className="admin-main">{children}</main>

@@ -313,3 +313,71 @@ CREATE TABLE IF NOT EXISTS promotions (
 
 CREATE INDEX IF NOT EXISTS idx_promotions_code   ON promotions(code);
 CREATE INDEX IF NOT EXISTS idx_promotions_active ON promotions(is_active);
+
+-- ── AI Services: Supplier Match Results ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ai_supplier_matches (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rfq_id          UUID NOT NULL REFERENCES rfqs(id) ON DELETE CASCADE,
+  supplier_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  score           NUMERIC(5,2) NOT NULL,      -- 0-100 composite match score
+  location_score  NUMERIC(5,2) DEFAULT 0,
+  performance_score NUMERIC(5,2) DEFAULT 0,
+  catalog_score   NUMERIC(5,2) DEFAULT 0,
+  price_score     NUMERIC(5,2) DEFAULT 0,
+  rank            INTEGER NOT NULL,
+  reasoning       JSONB DEFAULT '{}',
+  model_version   VARCHAR(20) DEFAULT 'heuristic-v1',
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_matches_rfq      ON ai_supplier_matches(rfq_id);
+CREATE INDEX IF NOT EXISTS idx_ai_matches_supplier ON ai_supplier_matches(supplier_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_matches_rfq_supplier
+  ON ai_supplier_matches(rfq_id, supplier_id);
+
+-- ── AI Services: Buyer Credit Scores ─────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ai_credit_scores (
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  buyer_id             UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  score                INTEGER NOT NULL,        -- 300-850 (FICO-style scale)
+  grade                VARCHAR(5) NOT NULL,     -- A, B, C, D, F
+  creditworthiness     VARCHAR(20) NOT NULL,    -- 'excellent' | 'good' | 'fair' | 'poor'
+  suggested_limit      NUMERIC(14,2) NOT NULL,  -- PKR recommended credit limit
+  factors              JSONB DEFAULT '{}',      -- positive/negative signals
+  transaction_count    INTEGER DEFAULT 0,
+  total_paid           NUMERIC(14,2) DEFAULT 0,
+  avg_pool_size        NUMERIC(10,2) DEFAULT 0,
+  on_time_rate         NUMERIC(5,2) DEFAULT 0,  -- 0-100%
+  model_version        VARCHAR(20) DEFAULT 'heuristic-v1',
+  computed_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_credit_buyer ON ai_credit_scores(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_ai_credit_grade  ON ai_credit_scores(grade);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_credit_buyer_unique
+  ON ai_credit_scores(buyer_id);
+
+-- ── AI Services: Pricing Insights ────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ai_pricing_insights (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  supplier_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_name      TEXT NOT NULL,
+  category          TEXT,
+  suggested_min     NUMERIC(12,2) NOT NULL,
+  suggested_max     NUMERIC(12,2) NOT NULL,
+  suggested_optimal NUMERIC(12,2) NOT NULL,
+  market_median     NUMERIC(12,2),
+  competitor_count  INTEGER DEFAULT 0,
+  confidence        NUMERIC(5,2) DEFAULT 50,    -- 0-100%
+  reasoning         JSONB DEFAULT '{}',
+  model_version     VARCHAR(20) DEFAULT 'heuristic-v1',
+  computed_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_pricing_supplier ON ai_pricing_insights(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_ai_pricing_product  ON ai_pricing_insights(product_name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_pricing_supplier_product
+  ON ai_pricing_insights(supplier_id, product_name);
