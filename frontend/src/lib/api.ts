@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Rfq, Pool } from '../types';
+import { Rfq, Pool, Quote, CatalogItem, SupplierOrder, SupplierDashboard, SupplierWithStats } from '../types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -75,5 +75,105 @@ export const joinPool = async (
   payload: JoinPoolPayload,
 ): Promise<{ member: object; pool: Pool; auto_confirmed: boolean }> => {
   const { data } = await api.post(`/pools/${poolId}/join`, payload);
+  return data.data;
+};
+
+// ─── Quotes ───────────────────────────────────────────────────────────────────
+
+export interface SubmitQuotePayload {
+  supplier_id: string;
+  price_per_unit: number;
+  lead_time_days: number;
+  notes?: string;
+}
+
+export const submitQuote = async (rfqId: string, payload: SubmitQuotePayload): Promise<Quote> => {
+  const { data } = await api.post<{ success: boolean; data: Quote }>(`/rfqs/${rfqId}/quotes`, payload);
+  return data.data;
+};
+
+export const listQuotesForRfq = async (rfqId: string): Promise<Quote[]> => {
+  const { data } = await api.get<{ success: boolean; data: Quote[] }>(`/rfqs/${rfqId}/quotes`);
+  return data.data;
+};
+
+export const listQuotesBySupplier = async (supplierId: string): Promise<Quote[]> => {
+  const { data } = await api.get<{ success: boolean; data: Quote[] }>(`/suppliers/${supplierId}/quotes`);
+  return data.data;
+};
+
+export const updateQuoteStatus = async (
+  quoteId: string,
+  status: string,
+): Promise<Quote> => {
+  const { data } = await api.patch<{ success: boolean; data: Quote }>(`/quotes/${quoteId}/status`, { status });
+  return data.data;
+};
+
+// ─── Catalog ──────────────────────────────────────────────────────────────────
+
+export interface CreateCatalogItemPayload {
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  description?: string;
+  unit?: string;
+  moq: number;
+  price?: number;
+}
+
+export const createCatalogItem = async (payload: CreateCatalogItemPayload): Promise<CatalogItem> => {
+  const { data } = await api.post<{ success: boolean; data: CatalogItem }>('/catalog', payload);
+  return data.data;
+};
+
+export const listCatalogItems = async (params?: {
+  supplier_id?: string;
+  category?: string;
+}): Promise<CatalogItem[]> => {
+  const { data } = await api.get<{ success: boolean; data: CatalogItem[] }>('/catalog', { params });
+  return data.data;
+};
+
+export const updateCatalogItem = async (
+  id: string,
+  payload: Partial<CreateCatalogItemPayload> & { is_active?: boolean },
+): Promise<CatalogItem> => {
+  const { data } = await api.patch<{ success: boolean; data: CatalogItem }>(`/catalog/${id}`, payload);
+  return data.data;
+};
+
+export const deleteCatalogItem = async (id: string): Promise<CatalogItem> => {
+  const { data } = await api.delete<{ success: boolean; data: CatalogItem }>(`/catalog/${id}`);
+  return data.data;
+};
+
+// ─── Supplier Dashboard ───────────────────────────────────────────────────────
+
+export const getSupplierDashboard = async (supplierId: string): Promise<SupplierDashboard> => {
+  const { data } = await api.get<{ success: boolean; data: SupplierDashboard }>(`/suppliers/${supplierId}/dashboard`);
+  return data.data;
+};
+
+export const getSupplierOrders = async (supplierId: string): Promise<SupplierOrder[]> => {
+  const { data } = await api.get<{ success: boolean; data: SupplierOrder[] }>(`/suppliers/${supplierId}/orders`);
+  return data.data;
+};
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+export const listSuppliersAdmin = async (): Promise<SupplierWithStats[]> => {
+  const { data } = await api.get<{ success: boolean; data: SupplierWithStats[] }>('/admin/suppliers');
+  return data.data;
+};
+
+export const updateSupplierVerification = async (
+  supplierId: string,
+  verification_status: string,
+): Promise<SupplierWithStats> => {
+  const { data } = await api.patch<{ success: boolean; data: SupplierWithStats }>(
+    `/admin/suppliers/${supplierId}/verify`,
+    { verification_status },
+  );
   return data.data;
 };

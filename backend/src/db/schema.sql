@@ -67,10 +67,45 @@ CREATE TABLE IF NOT EXISTS pool_members (
   UNIQUE (pool_id, buyer_id)
 );
 
+-- Supplier verification status on users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'pending';
+
+-- Quotes submitted by suppliers in response to RFQs / pools
+CREATE TABLE IF NOT EXISTS quotes (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rfq_id          UUID NOT NULL REFERENCES rfqs(id) ON DELETE CASCADE,
+  supplier_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  price_per_unit  NUMERIC(12, 2) NOT NULL CHECK (price_per_unit > 0),
+  lead_time_days  INTEGER NOT NULL CHECK (lead_time_days > 0),
+  notes           TEXT,
+  status          VARCHAR(20) NOT NULL DEFAULT 'pending', -- 'pending' | 'accepted' | 'rejected'
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (rfq_id, supplier_id)
+);
+
+-- Supplier product catalog with MOQ rules
+CREATE TABLE IF NOT EXISTS catalog_items (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  supplier_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_name VARCHAR(255) NOT NULL,
+  category     VARCHAR(100),
+  description  TEXT,
+  unit         VARCHAR(50) DEFAULT 'units',
+  moq          INTEGER NOT NULL DEFAULT 100 CHECK (moq > 0),
+  price        NUMERIC(12, 2) CHECK (price > 0),
+  is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_rfqs_buyer_id     ON rfqs(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_rfqs_status        ON rfqs(status);
-CREATE INDEX IF NOT EXISTS idx_pools_rfq_id       ON pools(rfq_id);
-CREATE INDEX IF NOT EXISTS idx_pools_status        ON pools(status);
-CREATE INDEX IF NOT EXISTS idx_pool_members_pool   ON pool_members(pool_id);
-CREATE INDEX IF NOT EXISTS idx_pool_members_buyer  ON pool_members(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_rfqs_buyer_id        ON rfqs(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_rfqs_status           ON rfqs(status);
+CREATE INDEX IF NOT EXISTS idx_pools_rfq_id          ON pools(rfq_id);
+CREATE INDEX IF NOT EXISTS idx_pools_status           ON pools(status);
+CREATE INDEX IF NOT EXISTS idx_pool_members_pool      ON pool_members(pool_id);
+CREATE INDEX IF NOT EXISTS idx_pool_members_buyer     ON pool_members(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_quotes_rfq_id          ON quotes(rfq_id);
+CREATE INDEX IF NOT EXISTS idx_quotes_supplier_id     ON quotes(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_catalog_supplier_id    ON catalog_items(supplier_id);

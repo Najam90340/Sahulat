@@ -2,6 +2,8 @@ export type UserRole = 'buyer' | 'supplier' | 'admin';
 export type RfqStatus = 'open' | 'pooled' | 'confirmed' | 'cancelled';
 export type PoolStatus = 'open' | 'confirmed' | 'refunded' | 'partial';
 export type MemberStatus = 'pending' | 'confirmed' | 'refunded';
+export type QuoteStatus = 'pending' | 'accepted' | 'rejected';
+export type VerificationStatus = 'pending' | 'verified' | 'premium';
 
 export interface User {
   id: string;
@@ -10,6 +12,7 @@ export interface User {
   phone?: string;
   role: UserRole;
   city?: string;
+  verification_status: VerificationStatus;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +71,33 @@ export interface PoolWithProgress extends Pool {
   members?: PoolMember[];
 }
 
+export interface Quote {
+  id: string;
+  rfq_id: string;
+  supplier_id: string;
+  supplier_name?: string;
+  price_per_unit: number;
+  lead_time_days: number;
+  notes?: string;
+  status: QuoteStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogItem {
+  id: string;
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  description?: string;
+  unit: string;
+  moq: number;
+  price?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CreateRfqBody {
   buyer_id: string;
   product_id?: string;
@@ -89,4 +119,25 @@ export interface JoinPoolBody {
   buyer_id: string;
   quantity: number;
   amount_paid?: number;
+}
+
+export interface SubmitQuoteBody {
+  supplier_id: string;
+  price_per_unit: number;
+  lead_time_days: number;
+  notes?: string;
+}
+
+export interface CreateCatalogItemBody {
+  supplier_id: string;
+  product_name: string;
+  category?: string;
+  description?: string;
+  unit?: string;
+  moq: number;
+  price?: number;
+}
+
+export interface UpdateVerificationBody {
+  verification_status: VerificationStatus;
 }
