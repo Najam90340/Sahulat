@@ -1,0 +1,63 @@
+/**
+ * Pakistan City List – React Native
+ * Mirrors frontend/src/lib/cities.ts
+ */
+export const PAKISTAN_CITIES = [
+  'Karachi',
+  'Lahore',
+  'Islamabad',
+  'Rawalpindi',
+  'Faisalabad',
+  'Peshawar',
+  'Quetta',
+  'Multan',
+  'Gujranwala',
+  'Sialkot',
+  'Bahawalpur',
+  'Sargodha',
+  'Sukkur',
+  'Hyderabad',
+  'Abbottabad',
+  'Mardan',
+  'Dera Ghazi Khan',
+  'Gujrat',
+  'Sheikhupura',
+  'Rahimyar Khan',
+  'Sahiwal',
+  'Larkana',
+  'Mirpur Khas',
+  'Nawabshah',
+  'Mingora',
+  'Chiniot',
+  'Kasur',
+  'Dera Ismail Khan',
+  'Kohat',
+  'Nowshera',
+  'Attock',
+  'Chakwal',
+  'Jhelum',
+  'Muzaffarabad',
+  'Turbat',
+  'Gwadar',
+] as const;
+
+export type PakistanCity = (typeof PAKISTAN_CITIES)[number];
+
+export const PAKISTAN_CITIES_URDU: Record<string, string> = {
+  Karachi: 'کراچی',
+  Lahore: 'لاہور',
+  Islamabad: 'اسلام آباد',
+  Rawalpindi: 'راولپنڈی',
+  Faisalabad: 'فیصل آباد',
+  Peshawar: 'پشاور',
+  Quetta: 'کوئٹہ',
+  Multan: 'ملتان',
+  Gujranwala: 'گوجرانوالہ',
+  Sialkot: 'سیالکوٹ',
+  Bahawalpur: 'بہاولپور',
+  Sargodha: 'سرگودھا',
+  Sukkur: 'سکھر',
+  Hyderabad: 'حیدرآباد',
+  Abbottabad: 'ایبٹ آباد',
+  Mardan: 'مردان',
+};

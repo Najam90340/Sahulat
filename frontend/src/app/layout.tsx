@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import './globals.css';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import NavBar from '@/components/NavBar';
+import BottomNav from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'Sahulat',
   description: 'Sahulat — Group buying platform for Pakistan',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  themeColor: '#2563eb',
 };
 
 export default function RootLayout({
@@ -13,27 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body>
-        <nav className="nav">
-          <div className="nav-inner">
-            <Link href="/" className="nav-brand">
-              🛒 Sahulat
-            </Link>
-            <div className="nav-links">
-              <Link href="/rfq">RFQs</Link>
-              <Link href="/pools">Pools</Link>
-              <Link href="/chat">💬 Messages</Link>
-              <Link href="/tracking">My Shipments</Link>
-              <Link href="/supplier/dashboard">Supplier</Link>
-              <Link href="/payment/history">My Payments</Link>
-              <Link href="/rfq/new" className="btn-primary">
-                + Post RFQ
-              </Link>
-            </div>
-          </div>
-        </nav>
-        {children}
+        <LanguageProvider>
+          <NavBar />
+          {children}
+          <BottomNav />
+        </LanguageProvider>
       </body>
     </html>
   );
