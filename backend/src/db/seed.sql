@@ -454,3 +454,224 @@ VALUES
     'heuristic-v1'
   )
 ON CONFLICT DO NOTHING;
+
+-- ── Escrow Ledger (Transactions) ─────────────────────────────────────────────
+-- One transaction per pool member for the confirmed Sugar pool (pool 2)
+-- Pool members: Sara Khan (80 kg, 8000 PKR) and Zara Ahmed (220 kg, 22000 PKR)
+
+-- First, we need the pool_member IDs from the sugar pool inserts above.
+-- We use a DO block to insert transactions referencing pool_members by (pool_id, buyer_id).
+DO $$
+DECLARE
+  v_member1_id UUID;
+  v_member2_id UUID;
+BEGIN
+  SELECT id INTO v_member1_id
+    FROM pool_members
+   WHERE pool_id = 'd1000000-0000-0000-0000-000000000002'
+     AND buyer_id = 'a1000000-0000-0000-0000-000000000002';  -- Sara Khan
+
+  SELECT id INTO v_member2_id
+    FROM pool_members
+   WHERE pool_id = 'd1000000-0000-0000-0000-000000000002'
+     AND buyer_id = 'a1000000-0000-0000-0000-000000000004';  -- Zara Ahmed
+
+  IF v_member1_id IS NOT NULL THEN
+    INSERT INTO transactions
+      (id, pool_id, pool_member_id, buyer_id, amount, currency,
+       payment_method, gateway_ref, status, phone,
+       initiated_at, held_at, released_at, metadata)
+    VALUES (
+      'h1000000-0000-0000-0000-000000000001',
+      'd1000000-0000-0000-0000-000000000002',
+      v_member1_id,
+      'a1000000-0000-0000-0000-000000000002',  -- Sara Khan
+      8000.00, 'PKR', 'easypaisa', 'EP-STAGING-001', 'released',
+      '0301-2345678',
+      NOW() - INTERVAL '6 days',
+      NOW() - INTERVAL '6 days' + INTERVAL '5 minutes',
+      NOW() - INTERVAL '1 day',
+      '{"gateway":"easypaisa","mobile":"0301-2345678","merchant":"SAHULAT-001"}'::jsonb
+    ) ON CONFLICT (pool_member_id) DO NOTHING;
+  END IF;
+
+  IF v_member2_id IS NOT NULL THEN
+    INSERT INTO transactions
+      (id, pool_id, pool_member_id, buyer_id, amount, currency,
+       payment_method, gateway_ref, status, phone,
+       initiated_at, held_at, released_at, metadata)
+    VALUES (
+      'h1000000-0000-0000-0000-000000000002',
+      'd1000000-0000-0000-0000-000000000002',
+      v_member2_id,
+      'a1000000-0000-0000-0000-000000000004',  -- Zara Ahmed
+      22000.00, 'PKR', 'jazzcash', 'JC-STAGING-001', 'released',
+      '0303-4567890',
+      NOW() - INTERVAL '6 days',
+      NOW() - INTERVAL '6 days' + INTERVAL '3 minutes',
+      NOW() - INTERVAL '1 day',
+      '{"gateway":"jazzcash","mobile":"0303-4567890","merchant":"SAHULAT-001"}'::jsonb
+    ) ON CONFLICT (pool_member_id) DO NOTHING;
+  END IF;
+END
+$$;
+
+-- ── Shipments ─────────────────────────────────────────────────────────────────
+-- Consolidated shipment for the confirmed Sugar pool (pool 2 → Karachi)
+INSERT INTO shipments
+  (id, pool_id, supplier_id, courier, tracking_number, status,
+   origin_city, destination_city, pickup_address, notes,
+   estimated_delivery, booked_at, picked_up_at, delivered_at,
+   created_at, updated_at)
+VALUES (
+  'g1000000-0000-0000-0000-000000000001',
+  'd1000000-0000-0000-0000-000000000002',  -- Sugar pool
+  'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies (Karachi supplier)
+  'tcs', 'TCS-STAGE-20240001', 'delivered',
+  'Karachi', 'Karachi',
+  'Prime Supplies Warehouse, SITE Area, Karachi',
+  'Fragile – refined sugar in sealed bags',
+  NOW() - INTERVAL '2 days',
+  NOW() - INTERVAL '5 days',
+  NOW() - INTERVAL '4 days',
+  NOW() - INTERVAL '1 day',
+  NOW() - INTERVAL '5 days',
+  NOW() - INTERVAL '1 day'
+) ON CONFLICT DO NOTHING;
+
+-- ── Shipment Events (Tracking Timeline) ──────────────────────────────────────
+INSERT INTO shipment_events
+  (id, shipment_id, status, location, description, occurred_at)
+VALUES
+  (
+    'se000000-0000-0000-0000-000000000001',
+    'g1000000-0000-0000-0000-000000000001',
+    'booked',
+    'Karachi – SITE Area Warehouse',
+    'Shipment booked with TCS. Tracking: TCS-STAGE-20240001',
+    NOW() - INTERVAL '5 days'
+  ),
+  (
+    'se000000-0000-0000-0000-000000000002',
+    'g1000000-0000-0000-0000-000000000001',
+    'picked_up',
+    'Karachi – SITE Area Warehouse',
+    'Parcel picked up by TCS courier.',
+    NOW() - INTERVAL '4 days'
+  ),
+  (
+    'se000000-0000-0000-0000-000000000003',
+    'g1000000-0000-0000-0000-000000000001',
+    'in_transit',
+    'TCS Karachi Hub',
+    'Package sorted and in transit to delivery zone.',
+    NOW() - INTERVAL '3 days'
+  ),
+  (
+    'se000000-0000-0000-0000-000000000004',
+    'g1000000-0000-0000-0000-000000000001',
+    'out_for_delivery',
+    'Gulshan-e-Iqbal, Karachi',
+    'Out for delivery. Driver: Amir Hussain.',
+    NOW() - INTERVAL '1 day' - INTERVAL '4 hours'
+  ),
+  (
+    'se000000-0000-0000-0000-000000000005',
+    'g1000000-0000-0000-0000-000000000001',
+    'delivered',
+    'Gulshan-e-Iqbal, Karachi',
+    'Delivered successfully. Received by: Sara Khan.',
+    NOW() - INTERVAL '1 day'
+  )
+ON CONFLICT DO NOTHING;
+
+-- ── Delivery Proof ────────────────────────────────────────────────────────────
+INSERT INTO delivery_proofs
+  (id, shipment_id, photo_url, notes, received_by, confirmed_at)
+VALUES (
+  'dp000000-0000-0000-0000-000000000001',
+  'g1000000-0000-0000-0000-000000000001',
+  'https://cdn.sahulat.pk/staging/proofs/TCS-STAGE-20240001.jpg',
+  'All bags intact. Sugar quality verified.',
+  'Sara Khan',
+  NOW() - INTERVAL '1 day'
+) ON CONFLICT (shipment_id) DO NOTHING;
+
+-- ── Shipment Members ──────────────────────────────────────────────────────────
+DO $$
+DECLARE
+  v_member1_id UUID;
+  v_member2_id UUID;
+BEGIN
+  SELECT id INTO v_member1_id
+    FROM pool_members
+   WHERE pool_id = 'd1000000-0000-0000-0000-000000000002'
+     AND buyer_id = 'a1000000-0000-0000-0000-000000000002';  -- Sara Khan
+
+  SELECT id INTO v_member2_id
+    FROM pool_members
+   WHERE pool_id = 'd1000000-0000-0000-0000-000000000002'
+     AND buyer_id = 'a1000000-0000-0000-0000-000000000004';  -- Zara Ahmed
+
+  IF v_member1_id IS NOT NULL THEN
+    INSERT INTO shipment_members
+      (shipment_id, pool_member_id, buyer_id, quantity, delivery_address, sub_status, delivered_at)
+    VALUES (
+      'g1000000-0000-0000-0000-000000000001',
+      v_member1_id,
+      'a1000000-0000-0000-0000-000000000002',
+      80,
+      'House 12-B, Block 6, Gulshan-e-Iqbal, Karachi',
+      'delivered',
+      NOW() - INTERVAL '1 day'
+    ) ON CONFLICT (shipment_id, pool_member_id) DO NOTHING;
+  END IF;
+
+  IF v_member2_id IS NOT NULL THEN
+    INSERT INTO shipment_members
+      (shipment_id, pool_member_id, buyer_id, quantity, delivery_address, sub_status, delivered_at)
+    VALUES (
+      'g1000000-0000-0000-0000-000000000001',
+      v_member2_id,
+      'a1000000-0000-0000-0000-000000000004',
+      220,
+      'Flat 3, Saima Royal Residency, Gulshan-e-Iqbal, Karachi',
+      'delivered',
+      NOW() - INTERVAL '1 day'
+    ) ON CONFLICT (shipment_id, pool_member_id) DO NOTHING;
+  END IF;
+END
+$$;
+
+-- ── Chat Messages (Buyer ↔ Supplier for the Sugar pool) ──────────────────────
+INSERT INTO chat_messages
+  (id, sender_id, receiver_id, rfq_id, message, is_masked, read_at)
+VALUES
+  (
+    'ch000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000002',  -- Sara Khan (buyer)
+    'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies
+    'c1000000-0000-0000-0000-000000000002',
+    'السلام علیکم! کیا آپ کے پاس 300 کلو شوگر دستیاب ہے؟',
+    FALSE,
+    NOW() - INTERVAL '7 days'
+  ),
+  (
+    'ch000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies
+    'a1000000-0000-0000-0000-000000000002',  -- Sara Khan
+    'c1000000-0000-0000-0000-000000000002',
+    'جی ہاں! ہمارے پاس refined white sugar دستیاب ہے۔ قیمت 100 روپے فی کلو ہے۔',
+    FALSE,
+    NOW() - INTERVAL '7 days' + INTERVAL '30 minutes'
+  ),
+  (
+    'ch000000-0000-0000-0000-000000000003',
+    'a1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000006',
+    'c1000000-0000-0000-0000-000000000002',
+    'ٹھیک ہے، ہم آپ کے ساتھ pool join کریں گے۔ کب تک delivery ہوگی؟',
+    FALSE,
+    NULL
+  )
+ON CONFLICT DO NOTHING;
