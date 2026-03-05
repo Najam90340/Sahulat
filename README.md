@@ -134,7 +134,7 @@ npm run dev:admin
 | Backend | Node.js, Express, TypeScript |
 | Database | PostgreSQL (via `pg`) |
 | Cache | Redis (via `ioredis`) |
-| Frontend | Next.js 14, React, TypeScript |
-| Admin | Next.js 14, React, TypeScript |
+| Frontend | Next.js 15, React, TypeScript |
+| Admin | Next.js 15, React, TypeScript |
 | Mobile | React Native, TypeScript |
 | Infrastructure | Docker, Docker Compose |
