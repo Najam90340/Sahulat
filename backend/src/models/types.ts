@@ -352,3 +352,131 @@ export interface TranslateBody {
   message_id: string;
   target_lang: 'ur' | 'en';
 }
+
+// ── Admin Panel Entities ───────────────────────────────────────────────────────
+
+export type DisputeStatus =
+  | 'open'
+  | 'investigating'
+  | 'resolved_buyer'
+  | 'resolved_supplier'
+  | 'rejected';
+
+export type SubscriptionPlan = 'basic' | 'pro' | 'enterprise';
+export type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
+export type PromotionType = 'percentage' | 'fixed';
+
+export interface Dispute {
+  id: string;
+  transaction_id?: string;
+  buyer_id: string;
+  supplier_id: string;
+  pool_id?: string;
+  reason: string;
+  evidence_urls: string[];
+  status: DisputeStatus;
+  resolution?: string;
+  admin_note?: string;
+  raised_by: 'buyer' | 'supplier';
+  created_at: string;
+  updated_at: string;
+  resolved_at?: string;
+  // Joined
+  buyer_name?: string;
+  supplier_name?: string;
+  pool_product?: string;
+  transaction_amount?: number;
+}
+
+export interface CreateDisputeBody {
+  transaction_id?: string;
+  buyer_id: string;
+  supplier_id: string;
+  pool_id?: string;
+  reason: string;
+  evidence_urls?: string[];
+  raised_by: 'buyer' | 'supplier';
+}
+
+export interface UpdateDisputeBody {
+  status: DisputeStatus;
+  resolution?: string;
+  admin_note?: string;
+}
+
+export interface Subscription {
+  id: string;
+  supplier_id: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  amount: number;
+  currency: string;
+  starts_at: string;
+  expires_at?: string;
+  cancelled_at?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  // Joined
+  supplier_name?: string;
+  supplier_email?: string;
+}
+
+export interface CreateSubscriptionBody {
+  supplier_id: string;
+  plan: SubscriptionPlan;
+  amount: number;
+  currency?: string;
+  starts_at?: string;
+  expires_at?: string;
+  notes?: string;
+}
+
+export interface UpdateSubscriptionBody {
+  plan?: SubscriptionPlan;
+  status?: SubscriptionStatus;
+  amount?: number;
+  expires_at?: string;
+  notes?: string;
+}
+
+export interface Promotion {
+  id: string;
+  code: string;
+  description?: string;
+  type: PromotionType;
+  value: number;
+  min_order: number;
+  max_discount?: number;
+  max_uses?: number;
+  uses_count: number;
+  valid_from: string;
+  valid_to?: string;
+  is_active: boolean;
+  target_role?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePromotionBody {
+  code: string;
+  description?: string;
+  type: PromotionType;
+  value: number;
+  min_order?: number;
+  max_discount?: number;
+  max_uses?: number;
+  valid_from?: string;
+  valid_to?: string;
+  target_role?: string;
+}
+
+export interface UpdatePromotionBody {
+  description?: string;
+  value?: number;
+  min_order?: number;
+  max_discount?: number;
+  max_uses?: number;
+  valid_to?: string;
+  is_active?: boolean;
+}

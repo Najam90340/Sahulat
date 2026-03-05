@@ -20,11 +20,15 @@ export default function RootLayout({
             <h1>🛒 Sahulat Admin</h1>
             <nav className="admin-nav">
               <Link href="/">Overview</Link>
+              <Link href="/analytics">Analytics</Link>
               <Link href="/suppliers">Suppliers</Link>
+              <Link href="/disputes">Disputes</Link>
+              <Link href="/escrow">Escrow</Link>
               <Link href="/payments">Payments</Link>
               <Link href="/shipments">Shipments</Link>
+              <Link href="/subscriptions">Subscriptions</Link>
+              <Link href="/promotions">Promotions</Link>
               <Link href="/messages">Messages</Link>
-              <Link href="/analytics">Analytics</Link>
             </nav>
           </aside>
           <main className="admin-main">{children}</main>

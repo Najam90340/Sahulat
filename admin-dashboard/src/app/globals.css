@@ -148,3 +148,16 @@ a { color: inherit; text-decoration: none; }
 .empty-state { padding: 2.5rem; text-align: center; color: var(--text-muted); }
 .loading { padding: 2rem; text-align: center; color: var(--text-muted); }
 
+
+/* Additional badge colours for admin panel */
+.badge-orange   { background: #ffedd5; color: #9a3412; }
+.badge-red      { background: #fee2e2; color: #991b1b; }
+
+/* Input/select style helper */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  font-family: inherit;
+}

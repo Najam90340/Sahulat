@@ -244,3 +244,72 @@ CREATE INDEX IF NOT EXISTS idx_conversations_rfq      ON conversations(rfq_id);
 CREATE INDEX IF NOT EXISTS idx_messages_conversation  ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender        ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sent_at       ON messages(sent_at);
+
+-- ── Admin Panel: Dispute Resolution ──────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS disputes (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_id  UUID REFERENCES transactions(id) ON DELETE SET NULL,
+  buyer_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  supplier_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pool_id         UUID REFERENCES pools(id) ON DELETE SET NULL,
+  reason          TEXT NOT NULL,
+  evidence_urls   TEXT[] DEFAULT '{}',
+  status          VARCHAR(20) NOT NULL DEFAULT 'open',
+  -- 'open' | 'investigating' | 'resolved_buyer' | 'resolved_supplier' | 'rejected'
+  resolution      TEXT,
+  admin_note      TEXT,
+  raised_by       VARCHAR(10) NOT NULL DEFAULT 'buyer',  -- 'buyer' | 'supplier'
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  resolved_at     TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_disputes_buyer    ON disputes(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_disputes_supplier ON disputes(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_disputes_status   ON disputes(status);
+
+-- ── Admin Panel: Supplier Subscriptions ──────────────────────────────────────
+
+CREATE TYPE IF NOT EXISTS subscription_plan AS ENUM ('basic', 'pro', 'enterprise');
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  supplier_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  plan         subscription_plan NOT NULL DEFAULT 'basic',
+  status       VARCHAR(20) NOT NULL DEFAULT 'active',  -- 'active' | 'expired' | 'cancelled'
+  amount       NUMERIC(12,2) NOT NULL DEFAULT 0,
+  currency     VARCHAR(5) NOT NULL DEFAULT 'PKR',
+  starts_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at   TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  notes        TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_supplier ON subscriptions(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status   ON subscriptions(status);
+
+-- ── Admin Panel: Promotions / Promo Codes ────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS promotions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code          VARCHAR(50) NOT NULL UNIQUE,
+  description   TEXT,
+  type          VARCHAR(20) NOT NULL DEFAULT 'percentage', -- 'percentage' | 'fixed'
+  value         NUMERIC(10,2) NOT NULL,
+  min_order     NUMERIC(12,2) DEFAULT 0,
+  max_discount  NUMERIC(12,2),     -- cap for percentage promos
+  max_uses      INTEGER,           -- NULL = unlimited
+  uses_count    INTEGER NOT NULL DEFAULT 0,
+  valid_from    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  valid_to      TIMESTAMPTZ,       -- NULL = no expiry
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  target_role   VARCHAR(20),       -- NULL = all, or 'buyer' | 'supplier'
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_promotions_code   ON promotions(code);
+CREATE INDEX IF NOT EXISTS idx_promotions_active ON promotions(is_active);

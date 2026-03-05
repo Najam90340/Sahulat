@@ -230,3 +230,123 @@ VALUES
    'Please send me more details about the delivery schedule.',
    FALSE)
 ON CONFLICT DO NOTHING;
+
+-- ── Admin Panel: Sample Disputes ─────────────────────────────────────────────
+
+INSERT INTO disputes (id, transaction_id, buyer_id, supplier_id, pool_id, reason, status, raised_by)
+VALUES
+  (
+    'k1000000-0000-0000-0000-000000000001',
+    'f1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000005',
+    'd1000000-0000-0000-0000-000000000001',
+    'Supplier delivered incorrect quantity — received 80kg instead of 150kg of Basmati Rice.',
+    'investigating',
+    'buyer'
+  ),
+  (
+    'k1000000-0000-0000-0000-000000000002',
+    'f1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000005',
+    'd1000000-0000-0000-0000-000000000002',
+    'Payment shows as released but supplier claims not received.',
+    'open',
+    'supplier'
+  ),
+  (
+    'k1000000-0000-0000-0000-000000000003',
+    NULL,
+    'a1000000-0000-0000-0000-000000000003',
+    'a1000000-0000-0000-0000-000000000006',
+    NULL,
+    'Product quality was significantly below what was described in the catalog.',
+    'resolved_buyer',
+    'buyer'
+  )
+ON CONFLICT DO NOTHING;
+
+-- ── Admin Panel: Sample Subscriptions ────────────────────────────────────────
+
+INSERT INTO subscriptions (id, supplier_id, plan, status, amount, currency, starts_at, expires_at)
+VALUES
+  (
+    'l1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000005',  -- Global Goods
+    'pro',
+    'active',
+    4999.00,
+    'PKR',
+    NOW() - INTERVAL '15 days',
+    NOW() + INTERVAL '15 days'
+  ),
+  (
+    'l1000000-0000-0000-0000-000000000002',
+    'a1000000-0000-0000-0000-000000000006',  -- Prime Supplies
+    'basic',
+    'active',
+    999.00,
+    'PKR',
+    NOW() - INTERVAL '5 days',
+    NOW() + INTERVAL '25 days'
+  ),
+  (
+    'l1000000-0000-0000-0000-000000000003',
+    'a1000000-0000-0000-0000-000000000007',  -- Elite Traders
+    'enterprise',
+    'active',
+    14999.00,
+    'PKR',
+    NOW() - INTERVAL '10 days',
+    NOW() + INTERVAL '20 days'
+  )
+ON CONFLICT DO NOTHING;
+
+-- ── Admin Panel: Sample Promotions ───────────────────────────────────────────
+
+INSERT INTO promotions (id, code, description, type, value, min_order, max_discount, max_uses, uses_count, valid_from, valid_to, is_active)
+VALUES
+  (
+    'm1000000-0000-0000-0000-000000000001',
+    'WELCOME10',
+    '10% off your first order',
+    'percentage',
+    10.00,
+    1000.00,
+    500.00,
+    500,
+    42,
+    NOW() - INTERVAL '30 days',
+    NOW() + INTERVAL '60 days',
+    TRUE
+  ),
+  (
+    'm1000000-0000-0000-0000-000000000002',
+    'FLAT500',
+    'PKR 500 flat discount on orders above 5000',
+    'fixed',
+    500.00,
+    5000.00,
+    NULL,
+    200,
+    18,
+    NOW() - INTERVAL '15 days',
+    NOW() + INTERVAL '15 days',
+    TRUE
+  ),
+  (
+    'm1000000-0000-0000-0000-000000000003',
+    'RAMADAN20',
+    'Ramadan special: 20% off for verified buyers',
+    'percentage',
+    20.00,
+    2000.00,
+    1000.00,
+    1000,
+    0,
+    NOW() + INTERVAL '5 days',
+    NOW() + INTERVAL '35 days',
+    FALSE
+  )
+ON CONFLICT DO NOTHING;
