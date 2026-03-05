@@ -5,7 +5,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Linking,
+  Alert,
 } from 'react-native';
 import { Transaction } from '../types';
 
@@ -168,9 +168,6 @@ const DetailRow: React.FC<{
     </Text>
   </View>
 );
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Alert = require('react-native').Alert;
 
 const detailStyles = StyleSheet.create({
   row: {
