@@ -271,7 +271,11 @@ CREATE INDEX IF NOT EXISTS idx_disputes_status   ON disputes(status);
 
 -- ── Admin Panel: Supplier Subscriptions ──────────────────────────────────────
 
-CREATE TYPE IF NOT EXISTS subscription_plan AS ENUM ('basic', 'pro', 'enterprise');
+DO $$ BEGIN
+  CREATE TYPE subscription_plan AS ENUM ('basic', 'pro', 'enterprise');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS subscriptions (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
